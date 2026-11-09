@@ -2,7 +2,7 @@
   "name": "llm-manual-lab",
   "private": true,
   "type": "module",
-  "version": "2026.10.19",
+  "version": "2026.11.09",
   "description": "Reproducible companion experiments for the Russian LLM manual",
   "engines": { "node": ">=24" },
   "scripts": {

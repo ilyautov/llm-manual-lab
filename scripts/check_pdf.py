@@ -56,13 +56,14 @@ with pdfplumber.open(PDF) as document:
     assert 'Если в системе есть router, он выбирает исполнителя.' in flat(52)
     assert 'фиксировать трассу:' in flat(56)
     assert 'trace_id' in flat(60)
-    assert 'Двунаправленные представления' in flat(75)
+    assert 'Двунаправленные представления' in all_text
     assert 'Двухсторонние представления' not in all_text
     assert 'KV cache хранит ключи K и значения V' in flat(40)
     assert 'Запустить Ollama; затем ollama pull' in flat(62)
     assert 'одно черновое продолжение длиной K' in flat(64)
     assert 'трансграничная передача' in flat(66)
-    assert 'база заморожена, обучаются параметры адаптера' in flat(76)
+    assert 'база заморожена, обучаются параметры адаптера' in flat(
+        page_containing(pages, 'ПРИЛОЖЕНИЕ / ОТВЕТЫ'))
     for stale in ('Матрицы Q, K и V здесь единичные',
                   'несколько продолжений', 'PagedAttention исследует',
                   'модель тупая', 'уверенной чепухи', 'не угадать число',
@@ -73,16 +74,20 @@ with pdfplumber.open(PDF) as document:
         'Почему быстрее — не всегда дешевле',
         'Что показывает исследование внутренних связей',
         'Данные, веса и условия использования',
+        'Агент в продакшене',
+        'Сравнение версий и доверие к оценщику',
     ]
     addition_pages = [page_containing(pages, title) for title in additions]
-    assert addition_pages == list(range(addition_pages[0], addition_pages[0] + 4))
+    assert addition_pages == list(range(addition_pages[0], addition_pages[0] + len(additions)))
     assert all('ДОПОЛНЕНИЕ /' in pages[page - 1] for page in addition_pages)
     assert page_containing(pages, '21 Карта технических решений') < addition_pages[0]
     assert addition_pages[-1] < page_containing(pages, '22 Вопросы и практикум')
     for number, url in {
         37: '2304.08485', 38: '2302.01318', 39: '2407.02646',
         40: 'consultant.ru/document/cons_doc_LAW_61801',
-        41: 'repositories-licenses',
+        41: 'repositories-licenses', 42: '2405.15793',
+        43: 'building-effective-agents', 44: 'BF02295996',
+        45: '001316446002000104', 46: '1176344552', 47: '2310.18018',
     }.items():
         assert re.search(rf'\[{number}\][^\[]*{re.escape(url)}', all_text, re.S), number
     quick_page = page_containing(pages, 'Откуда взялся ответ и что проверять')

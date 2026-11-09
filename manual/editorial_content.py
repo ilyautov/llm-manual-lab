@@ -473,6 +473,23 @@ NEW_REFERENCES = [
     'https://www.consultant.ru/document/cons_doc_LAW_61801/',
     '[41] Hugging Face. Licenses: лицензии репозиториев моделей и наборов '
     'данных. https://huggingface.co/docs/hub/repositories-licenses',
+    '[42] Yang et al. SWE-agent: Agent-Computer Interfaces Enable Automated '
+    'Software Engineering. 2024. https://arxiv.org/abs/2405.15793',
+    '[43] Anthropic. Building effective agents. 2024. Рабочие процессы, '
+    'агенты, условия остановки и подтверждение человеком. '
+    'https://www.anthropic.com/research/building-effective-agents',
+    '[44] McNemar Q. Note on the Sampling Error of the Difference Between '
+    'Correlated Proportions or Percentages. Psychometrika 12(2), 153–157. '
+    '1947. https://doi.org/10.1007/BF02295996',
+    '[45] Cohen J. A Coefficient of Agreement for Nominal Scales. Educational '
+    'and Psychological Measurement 20(1), 37–46. 1960. '
+    'https://doi.org/10.1177/001316446002000104',
+    '[46] Efron B. Bootstrap Methods: Another Look at the Jackknife. The '
+    'Annals of Statistics 7(1), 1–26. 1979. '
+    'https://doi.org/10.1214/aos/1176344552',
+    '[47] Sainz et al. NLP Evaluation in trouble: On the Need to Measure LLM '
+    'Data Contamination for each Benchmark. 2023. '
+    'https://arxiv.org/abs/2310.18018',
 ]
 
 REFERENCE_TITLE_FIXES = {
