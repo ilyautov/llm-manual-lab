@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Три механизма LLM — интерактивный атлас</title>
+  <style>
+    :root { color-scheme: light; --paper:#f7f6f1; --ink:#252b2b; --muted:#586160; --line:#cdd2cc; --lime:#b8ea58; --blue:#a8dde1; --orange:#f4c77d; --panel:#eaf4d7; }
+    * { box-sizing:border-box }
+    html { scroll-behavior:smooth }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; }
+    button, input, select { font:inherit }
+    .shell { width:min(1180px, calc(100% - 48px)); margin:auto }
+    header { padding:26px 0 80px; background:var(--ink); color:var(--paper); position:relative; overflow:hidden }
+    header::before { content:""; position:absolute; width:780px; height:780px; border:1px solid #6b7772; border-radius:50%; right:-210px; top:-470px; box-shadow:0 0 0 80px #252b2b, 0 0 0 81px #48524e, 0 0 0 160px #252b2b, 0 0 0 161px #48524e; opacity:.48; pointer-events:none }
+    .topline { display:flex; justify-content:space-between; align-items:center; gap:20px; font:600 12px/1.4 Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; position:relative }
+    .topline a { color:var(--paper); text-underline-offset:4px }
+    .eyebrow { color:var(--lime); font:700 12px/1.3 Arial,sans-serif; letter-spacing:.2em; text-transform:uppercase; margin:88px 0 18px }
+    h1 { font-size:clamp(50px,8vw,112px); line-height:.94; font-weight:400; letter-spacing:-.065em; max-width:900px; margin:0 0 36px; position:relative }
+    header p:last-child { font-size:clamp(18px,2.5vw,24px); line-height:1.45; max-width:620px; margin:0; color:#d9dfd9; position:relative }
+    nav { border-bottom:1px solid var(--line); background:var(--paper) }
+    nav .shell { display:flex; gap:32px; overflow:auto; white-space:nowrap }
+    nav a { display:block; padding:17px 0; color:var(--ink); text-decoration:none; font:700 12px/1.3 Arial,sans-serif; letter-spacing:.08em; text-transform:uppercase }
+    nav a:hover, nav a:focus-visible { box-shadow:inset 0 -4px var(--ink) }
+    main { padding-bottom:90px }
+    section.experiment { border-bottom:1px solid var(--line); padding:78px 0 90px }
+    .section-top { display:grid; grid-template-columns:100px minmax(0,1fr); gap:20px; align-items:start; margin-bottom:36px }
+    .number { background:var(--lime); width:64px; height:64px; display:grid; place-items:center; font:700 20px Arial,sans-serif; border-radius:50% }
+    h2 { font-size:clamp(35px,5vw,65px); line-height:1; font-weight:400; letter-spacing:-.05em; margin:0 0 14px; }
+    .intro { font-size:19px; line-height:1.48; max-width:800px; margin:0; color:var(--muted) }
+    .workbench { display:grid; grid-template-columns:minmax(250px,.37fr) minmax(0,.63fr); border:1px solid var(--line); background:#fff }
+    .controls { background:var(--ink); color:var(--paper); padding:34px; }
+    .controls h3, .display h3 { font:700 12px/1.3 Arial,sans-serif; letter-spacing:.15em; text-transform:uppercase; margin:0 0 28px }
+    .controls label { display:block; font:600 16px/1.4 Arial,sans-serif; margin:0 0 12px }
+    .controls strong { display:block; font:400 54px/1 Georgia,serif; color:var(--lime); margin-bottom:20px; font-variant-numeric:tabular-nums }
+    input[type=range] { display:block; width:100%; accent-color:var(--lime); cursor:pointer }
+    .range-ends { display:flex; justify-content:space-between; color:#c5d0c7; font:12px Arial,sans-serif; margin-top:10px }
+    .control-copy { border-top:1px solid #5c6662; margin:36px 0 0; padding-top:22px; font:15px/1.55 Arial,sans-serif; color:#d3ddd6 }
+    .display { padding:34px 42px 40px; min-width:0 }
+    .equation { padding:18px 20px; background:var(--panel); margin-bottom:28px; font:19px/1.4 Georgia,serif; overflow-wrap:anywhere }
+    .bars { display:grid; gap:15px }
+    .bar-row { display:grid; grid-template-columns:70px minmax(0,1fr) 66px; gap:13px; align-items:center; font:700 14px Arial,sans-serif; font-variant-numeric:tabular-nums }
+    .bar-track { height:30px; background:#eef0e9; position:relative; overflow:hidden }
+    .bar-fill { height:100%; width:0; transition:width .18s ease; background:var(--blue) }
+    .bar-row:nth-child(2) .bar-fill { background:var(--lime) }
+    .bar-row:nth-child(3) .bar-fill { background:var(--orange) }
+    .bar-row output { text-align:right }
+    .interpretation { border-left:4px solid var(--ink); margin:27px 0 0; padding:1px 0 1px 16px; font:16px/1.5 Arial,sans-serif }
+    .tokens { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 24px }
+    .token { border:1px solid var(--line); min-width:88px; padding:13px 11px; text-align:center; font:700 18px Arial,sans-serif; background:#fff }
+    .token.active { border-color:var(--ink); background:var(--lime) }
+    .token.future { color:#7a807e; background:repeating-linear-gradient(135deg,#f1f2ed,#f1f2ed 5px,#e5e8e0 5px,#e5e8e0 10px) }
+    .att-row { display:grid; grid-template-columns:70px 75px minmax(0,1fr) 64px; align-items:center; gap:10px; font:13px Arial,sans-serif; margin:13px 0 }
+    .att-row .bar-track { height:26px }
+    .att-row.closed .bar-track { background:repeating-linear-gradient(135deg,#f1f2ed,#f1f2ed 5px,#e5e8e0 5px,#e5e8e0 10px) }
+    .att-row.closed .bar-fill { display:none }
+    .att-row output, .att-row .score { font-variant-numeric:tabular-nums; text-align:right }
+    .legend { font:13px/1.5 Arial,sans-serif; color:var(--muted); margin:18px 0 0 }
+    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:24px }
+    .metric { border-top:2px solid var(--ink); padding:14px 0 }
+    .metric span { display:block; font:12px/1.4 Arial,sans-serif; color:var(--muted) }
+    .metric strong { display:block; font:400 clamp(24px,3vw,38px)/1.15 Georgia,serif; font-variant-numeric:tabular-nums; margin-top:8px }
+    select { width:100%; color:var(--ink); background:var(--paper); padding:10px 12px; border:1px solid #8d9b91; margin:0 0 30px }
+    .weight-track { display:flex; height:34px; background:#e4e9df; overflow:hidden; margin-top:18px }
+    .weight-fill { background:var(--lime); min-width:2px; transition:width .18s ease }
+    .check { padding:24px 28px; background:#e7ede6; margin-top:22px; font:15px/1.5 Arial,sans-serif }
+    .check summary { cursor:pointer; font-weight:700 }
+    .check p { margin:12px 0 0 }
+    footer { background:var(--ink); color:var(--paper); padding:38px 0; font:14px/1.55 Arial,sans-serif }
+    footer .shell { display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap }
+    footer p { max-width:690px; margin:0 }
+    :focus-visible { outline:3px solid #e1852d; outline-offset:3px }
+    @media(max-width:760px) { .shell { width:min(100% - 28px,1180px) } header { padding-bottom:60px } .eyebrow { margin-top:65px } .section-top { grid-template-columns:1fr; gap:14px } section.experiment { padding:55px 0 66px } .workbench { grid-template-columns:1fr } .controls,.display { padding:26px } .bar-row { grid-template-columns:52px minmax(0,1fr) 55px; gap:8px } .att-row { grid-template-columns:52px 60px minmax(0,1fr) 45px; gap:6px } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell">
+      <div class="topline"><span>Теория LLM / лаборатория</span><span>Работает без сети</span></div>
+      <p class="eyebrow">Три расчёта, которые можно потрогать</p>
+      <h1>Меняйте число.<br>Смотрите механизм.</h1>
+      <p>Здесь нет ответа настоящей языковой модели. Это маленькие вычислительные модели из книги: каждое движение меняет число, которое можно проверить вручную.</p>
+    </div>
+  </header>
+  <nav aria-label="Разделы"><div class="shell"><a href="#temperature">01 Вероятности</a><a href="#attention">02 Маска внимания</a><a href="#lora">03 Ранг LoRA</a></div></nav>
+  <main class="shell">
+    <section class="experiment" id="temperature">
+      <div class="section-top"><div class="number" aria-hidden="true">01</div><div><h2>Температура меняет разброс</h2><p class="intro">Три кандидата получили неизменные оценки 2, 1 и 0. Двигайте T: оценки делятся на неё перед softmax. Самый вероятный вариант остаётся тем же; доли меняются.</p></div></div>
+      <div class="workbench"><div class="controls"><h3>Регулятор</h3><label for="temperature-range">Температура T</label><strong id="temperature-value">1,00</strong><input id="temperature-range" type="range" min="0.3" max="3" step="0.05" value="1" aria-describedby="temperature-help"><div class="range-ends"><span>0,30 · резче</span><span>3,00 · ровнее</span></div><p class="control-copy" id="temperature-help">Оценки (logits) зафиксированы: A = 2, B = 1, C = 0. Этот ползунок меняет распределение выборки, а не знания или веса модели.</p></div><div class="display"><h3>Результат вычисления</h3><div class="equation">pᵢ = exp(zᵢ / T) / Σⱼ exp(zⱼ / T)</div><div class="bars" id="temperature-bars" aria-live="polite"></div><p class="interpretation" id="temperature-explanation"></p></div></div>
+      <details class="check"><summary>Проверка понимания: станет ли C невозможным при T = 0,30?</summary><p>Нет. При положительной температуре softmax даёт C положительную, хотя и очень малую вероятность. Нулевую вероятность здесь создала бы жёсткая маска, как в следующем опыте.</p></details>
+    </section>
+    <section class="experiment" id="attention">
+      <div class="section-top"><div class="number" aria-hidden="true">02</div><div><h2>Маска закрывает будущее</h2><p class="intro">В одном учебном слое Q = K = V равны двумерным векторам: «я» [1, 0], «люблю» [0, 1], «чай» [1, 1]. Выберите позицию запроса. Внимание видит только её и предыдущие токены.</p></div></div>
+      <div class="workbench"><div class="controls"><h3>Позиция запроса</h3><label for="position-range">Какой токен сейчас читает слой?</label><strong id="position-value">люблю</strong><input id="position-range" type="range" min="0" max="2" step="1" value="1" aria-describedby="attention-help"><div class="range-ends"><span>я</span><span>чай</span></div><p class="control-copy" id="attention-help">Оценка связи = Q·K / √2. После маски будущее получает −∞, затем softmax даёт ему ровно 0. Это доступ к входным позициям, а не запрет слова в выходном словаре.</p></div><div class="display"><h3>Доступные входные токены</h3><div class="tokens" id="attention-tokens"></div><div class="equation">scoreⱼ = Q·Kⱼ / √2 + maskⱼ</div><div id="attention-rows" aria-live="polite"></div><p class="legend">Столбец справа — вес при смешивании V. Заштрихованный токен закрыт причинной маской.</p><p class="interpretation" id="attention-explanation"></p></div></div>
+      <details class="check"><summary>Проверка понимания: почему «чай» может быть следующим словом, когда его входная позиция закрыта?</summary><p>Слой не смотрит на будущий входной токен «чай». Позже полученный вектор сравнивается с кандидатами выходного словаря, где «чай» остаётся допустимым. Маска внимания и список выходных слов отвечают на разные вопросы.</p></details>
+    </section>
+    <section class="experiment" id="lora">
+      <div class="section-top"><div class="number" aria-hidden="true">03</div><div><h2>Ранг задаёт размер адаптера</h2><p class="intro">Для матрицы W размера d × k LoRA учит две меньшие матрицы: A размера r × k и B размера d × r. Меняйте ранг r и сравнивайте число новых параметров с полной матрицей.</p></div></div>
+      <div class="workbench"><div class="controls"><h3>Размеры</h3><label for="matrix-size">Матрица W: d = k</label><select id="matrix-size"><option value="1024">1 024 × 1 024</option><option value="4096" selected>4 096 × 4 096</option><option value="8192">8 192 × 8 192</option></select><label for="rank-range">Ранг r</label><strong id="rank-value">16</strong><input id="rank-range" type="range" min="1" max="128" step="1" value="16" aria-describedby="lora-help"><div class="range-ends"><span>1</span><span>128</span></div><p class="control-copy" id="lora-help">Это счёт параметров только для одной адаптируемой матрицы. Он не включает другие слои, оптимизатор, активации или стоимость инференса.</p></div><div class="display"><h3>Новые параметры относительно W</h3><div class="equation">N<sub>LoRA</sub> = r × (d + k), &nbsp; N<sub>W</sub> = d × k</div><div class="metric-grid"><div class="metric"><span>Полная матрица W</span><strong id="full-count">16 777 216</strong></div><div class="metric"><span>Обучаемый адаптер A + B</span><strong id="lora-count">131 072</strong></div><div class="metric"><span>Доля от W</span><strong id="lora-percent">0,78%</strong></div><div class="metric"><span>Сжатие по числу обучаемых параметров</span><strong id="lora-ratio">128×</strong></div></div><div class="weight-track" role="img" id="weight-track" aria-label="Доля параметров адаптера относительно полной матрицы"><div class="weight-fill" id="weight-fill"></div></div><p class="interpretation" id="lora-explanation"></p></div></div>
+      <details class="check"><summary>Проверка понимания: означает ли больший r лучший результат?</summary><p>Нет. Он даёт больше обучаемых коэффициентов и повышает ёмкость адаптера. Качество нужно измерять на одних и тех же контрольных случаях; большой ранг может не окупить память и обучение.</p></details>
+    </section>
+  </main>
+  <footer><div class="shell"><p>Эти демонстрации воспроизводят формулы из книги. Они не запускают LLM, не сравнивают модели и не подтверждают качество системы на ваших данных.</p><p>Редакция 2026.10.14 · Откройте этот файл в браузере</p></div></footer>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const fmt = (number, digits = 2) => number.toLocaleString('ru-RU', {minimumFractionDigits:digits, maximumFractionDigits:digits});
+    const integer = (number) => number.toLocaleString('ru-RU');
+    function softmax(values, temperature = 1) {
+      const scaled = values.map(value => value / temperature);
+      const max = Math.max(...scaled);
+      const weights = scaled.map(value => Math.exp(value - max));
+      const total = weights.reduce((sum, value) => sum + value, 0);
+      return weights.map(value => value / total);
+    }
+    function updateTemperature() {
+      const value = Number($('temperature-range').value);
+      const probabilities = softmax([2, 1, 0], value);
+      $('temperature-value').textContent = fmt(value);
+      $('temperature-bars').innerHTML = ['A','B','C'].map((label, index) => `<div class="bar-row"><span>${label} · ${2-index}</span><div class="bar-track"><div class="bar-fill" style="width:${probabilities[index]*100}%"></div></div><output>${fmt(probabilities[index]*100,1)}%</output></div>`).join('');
+      $('temperature-explanation').textContent = `A остаётся первым; разница между A и C сейчас ${fmt((probabilities[0]-probabilities[2])*100,1)} процентного пункта. Сумма трёх долей = 100%.`;
+    }
+    const tokens = ['я','люблю','чай'];
+    const vectors = [[1,0],[0,1],[1,1]];
+    function updateAttention() {
+      const position = Number($('position-range').value);
+      const query = vectors[position];
+      const scores = vectors.map(key => (query[0]*key[0]+query[1]*key[1])/Math.sqrt(2));
+      const visible = softmax(scores.slice(0,position+1));
+      const probabilities = scores.map((_, index) => index <= position ? visible[index] : 0);
+      $('position-value').textContent = tokens[position];
+      $('attention-tokens').innerHTML = tokens.map((token,index) => `<span class="token ${index===position?'active':index>position?'future':''}">${token}</span>`).join('');
+      $('attention-rows').innerHTML = tokens.map((token,index) => `<div class="att-row ${index>position?'closed':''}"><strong>${token}</strong><span class="score">${index>position?'−∞':fmt(scores[index],2)}</span><div class="bar-track"><div class="bar-fill" style="width:${probabilities[index]*100}%"></div></div><output>${fmt(probabilities[index]*100,1)}%</output></div>`).join('');
+      $('attention-explanation').textContent = position < 2 ? `Позиция «${tokens[position]}» не получает сведений из будущего: ${tokens.slice(position+1).map(token=>`«${token}»`).join(' и ')} имеет вес 0%.` : 'На последней позиции будущих токенов в этом примере нет: все три входные позиции доступны.';
+    }
+    function updateLora() {
+      const dimension = Number($('matrix-size').value);
+      const rank = Number($('rank-range').value);
+      const full = dimension*dimension;
+      const adapted = rank*(dimension+dimension);
+      const share = adapted/full*100;
+      $('rank-value').textContent = String(rank);
+      $('full-count').textContent = integer(full);
+      $('lora-count').textContent = integer(adapted);
+      $('lora-percent').textContent = `${fmt(share)}%`;
+      $('lora-ratio').textContent = `${fmt(full/adapted,1)}×`;
+      $('weight-fill').style.width = `${Math.min(100,share)}%`;
+      $('weight-track').setAttribute('aria-label', `Адаптер содержит ${fmt(share)} процента параметров матрицы W`);
+      $('lora-explanation').textContent = `При r = ${rank} обе матрицы адаптера содержат по ${integer(rank*dimension)} коэффициентов. Это подсчёт ёмкости, а не измерение качества.`;
+    }
+    $('temperature-range').addEventListener('input', updateTemperature);
+    $('position-range').addEventListener('input', updateAttention);
+    $('rank-range').addEventListener('input', updateLora);
+    $('matrix-size').addEventListener('change', updateLora);
+    updateTemperature(); updateAttention(); updateLora();
+  </script>
+</body>
+</html>
