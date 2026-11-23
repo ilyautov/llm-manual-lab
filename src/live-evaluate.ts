@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { localOllamaTransport, type ChatTransport, type ChatMessage } from './live-lab.ts';
+import { extractPrices } from './price.ts';
 
 export type LiveCase = {
   id: string; question: string; context: string;
@@ -9,10 +10,12 @@ export type LiveCase = {
 };
 
 export function assessAnswer(answer: string, testCase: LiveCase) {
-  const found = answer.match(/(?:^|\D)(\d[\d\s]*)\s*₽/u);
-  const observedPrice = found ? Number(found[1].replace(/\s/gu, '')) : null;
+  const prices = extractPrices(answer);
+  const observedPrice = prices[0] ?? null;
   return {
     observedPrice,
+    // разные суммы в одном ответе: вердикт по первой цене ненадёжен, ответ уходит человеку
+    conflictingPrices: new Set(prices).size > 1,
     priceCheck: observedPrice === testCase.expectedPrice,
     citationCheck: testCase.sourceId === null ? null : answer.includes(testCase.sourceId),
     needsHumanReview: true,

@@ -2,6 +2,7 @@
 import { pathToFileURL } from 'node:url';
 import { paidOrders } from './orders.ts';
 import { traceTariff } from './rag.ts';
+import { extractPrices } from './price.ts';
 
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -34,7 +35,9 @@ const QUESTION = 'Сколько оплаченных заказов было 1 
 
 export function localOllamaTransport(url = process.env.OLLAMA_URL ?? DEFAULT_URL): ChatTransport {
   const endpoint = new URL('/api/chat', url);
-  if (endpoint.protocol !== 'http:' || !['127.0.0.1', 'localhost', '::1'].includes(endpoint.hostname)) {
+  // WHATWG URL возвращает IPv6-хост в скобках («[::1]»), сравниваем без скобок.
+  const host = endpoint.hostname.replace(/^\[|\]$/g, '');
+  if (endpoint.protocol !== 'http:' || !['127.0.0.1', 'localhost', '::1'].includes(host)) {
     throw new Error('Лаборатория обращается только к локальному Ollama по HTTP.');
   }
   return async (request) => {
@@ -70,7 +73,7 @@ export async function tariffWithRealModel(chat: ChatTransport, model = DEFAULT_M
   ];
   const response = await chat(request(model, messages));
   const answer = response.message?.content ?? '';
-  const prices = [...answer.matchAll(/\b(\d+)\s*₽/gu)].map((match) => Number(match[1]));
+  const prices = extractPrices(answer);
   return {
     retrievedIds: retrieval.retrievedIds,
     modelAnswer: answer,

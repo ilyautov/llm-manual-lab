@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { executePaidOrdersCall, ordersWithRealModel, tariffWithRealModel,
+import { executePaidOrdersCall, localOllamaTransport, ordersWithRealModel, tariffWithRealModel,
   type ChatTransport } from '../src/live-lab.ts';
 
 const validCall = { type: 'function' as const,
@@ -47,4 +47,10 @@ test('tariff check distinguishes model output from retrieved document', async ()
   assert.equal((await tariffWithRealModel(chat, 'test', false)).unsupportedPrice, true);
   const conflicting: ChatTransport = async () => ({ message: { content: '300 ₽ или 900 ₽' } });
   assert.equal((await tariffWithRealModel(conflicting, 'test', true)).priceMatchesSource, false);
+});
+
+test('IPv6 localhost принимается транспортом Ollama', () => {
+  const t = localOllamaTransport('http://[::1]:11434');
+  assert.equal(typeof t, 'function');
+  assert.throws(() => localOllamaTransport('http://example.com:11434'), /локальн/);
 });

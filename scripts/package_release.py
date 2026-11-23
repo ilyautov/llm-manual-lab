@@ -19,8 +19,6 @@ def included(path: Path) -> bool:
         return False
     if rel.parts[:2] == ('manual', 'out'):
         return False
-    if rel.parts[:2] == ('manual', 'assets') and path.suffix.lower() == '.png':
-        return False
     return path.name != '.DS_Store'
 
 
@@ -32,7 +30,7 @@ with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED, compressleve
 with zipfile.ZipFile(target) as archive:
     assert archive.testzip() is None
     assert len(archive.namelist()) == len(files)
-    assert not any('/.git/' in name or name.endswith('.png') for name in archive.namelist())
+    assert not any('/.git/' in name for name in archive.namelist())
 
 print(json.dumps({'archive': str(target), 'files': len(files),
                   'bytes': target.stat().st_size}, ensure_ascii=False))

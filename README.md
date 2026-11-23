@@ -2,6 +2,8 @@
 
 Бесплатный учебник на русском о том, как устроены большие языковые модели и системы вокруг них, с воспроизводимой лабораторией на TypeScript.
 
+[![Тесты](https://img.shields.io/badge/тесты-27-2ea44f?style=flat-square)](../../actions) [![Редакция](https://img.shields.io/badge/редакция-2026.11.09-3553ff?style=flat-square)](CHANGELOG.md) [![Книга: CC BY-NC 4.0](https://img.shields.io/badge/книга-CC%20BY--NC%204.0-8a8f98?style=flat-square)](LICENSE-BOOK.md) [![Код: MIT](https://img.shields.io/badge/код-MIT-8a8f98?style=flat-square)](LICENSE-CODE.txt)
+
 **[Скачать PDF (82 страницы)](../../releases/latest)** · [Интерактивный атлас](interactive/index.html) · [Журнал изменений](CHANGELOG.md) · [Сообщить об ошибке](../../issues/new/choose)
 
 Автор: Утов Илья · [Telegram-канал](https://t.me/gorilla_under_hood) · Редакция 2026.11.09
@@ -72,7 +74,7 @@ npm run live:evaluate
 
 ## Сборка PDF
 
-Исходники книги и скрипты сборки лежат в [manual/](manual/README.md). Прежнее подробное описание лаборатории: [docs/lab.md](docs/lab.md).
+Исходники книги и скрипты сборки лежат в [manual/](manual/README.md), шрифты входят в репозиторий. Как выпускается релиз: [RELEASE.md](RELEASE.md). Прежнее подробное описание лаборатории: [docs/lab.md](docs/lab.md).
 
 ## Нашли ошибку?
 

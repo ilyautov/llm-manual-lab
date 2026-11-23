@@ -28,6 +28,12 @@ from pdf_cleanup import remove_unused_helvetica
 DEST = base.ROOT / 'manual/out/Теория_LLM_полный_мануал.pdf'
 TRACE = json.loads((base.ROOT / 'data/training-trace.json').read_text())
 PUBLICATION = json.loads((base.ROOT / 'manual/publication.json').read_text())
+# Редакция и дата обложки выводятся из publication.json, чтобы не отставать от релиза.
+EDITION = PUBLICATION['edition'].strip()
+_MONTHS = {1: 'ЯНВАРЯ', 2: 'ФЕВРАЛЯ', 3: 'МАРТА', 4: 'АПРЕЛЯ', 5: 'МАЯ', 6: 'ИЮНЯ',
+           7: 'ИЮЛЯ', 8: 'АВГУСТА', 9: 'СЕНТЯБРЯ', 10: 'ОКТЯБРЯ', 11: 'НОЯБРЯ', 12: 'ДЕКАБРЯ'}
+_y, _m, _d = (int(x) for x in EDITION.split('.'))
+EDITION_DATE_LINE = f'РЕДАКЦИЯ {EDITION}  /  {_d} {_MONTHS[_m]} {_y}'
 BLUE = colors.HexColor('#A8DDE1')
 AMBER = colors.HexColor('#F4C77D')
 SOFT_BLUE = colors.HexColor('#E3F2F1')
@@ -104,7 +110,7 @@ class ManualDoc(base.EditorialDoc):
     def __init__(self, filename):
         super().__init__(filename)
         self.title = 'Теория LLM: полный мануал для AI-лаборатории'
-        self.subject = 'Теория и практика языковых моделей; редакция 2026.10'
+        self.subject = f'Теория и практика языковых моделей; редакция {EDITION}'
         self.author = PUBLICATION['author'].strip()
 
     def draw_cover(self, canvas, doc):
@@ -135,7 +141,7 @@ class ManualDoc(base.EditorialDoc):
         c.drawString(42, 91,
                      '21 ТЕМА  /  ПРАКТИКУМ  /  ВИЗУАЛЬНЫЕ АТЛАСЫ')
         c.setFont('Noto', 8.4)
-        c.drawString(42, 68, 'РЕДАКЦИЯ 2026.10  /  19 ОКТЯБРЯ 2026')
+        c.drawString(42, 68, EDITION_DATE_LINE)
         c.restoreState()
 
     def beforeDocument(self):

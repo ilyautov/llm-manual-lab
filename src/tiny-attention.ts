@@ -1,4 +1,6 @@
 /** A hand-computable single causal attention head. Fixed weights, no training. */
+import { pathToFileURL } from 'node:url';
+
 export const ATTENTION_TOKENS = ['я', 'люблю', 'чай'] as const;
 export type Vector2 = readonly [number, number];
 export const EMBEDDINGS: readonly Vector2[] = [[1, 0], [0, 1], [1, 1]];
@@ -51,7 +53,7 @@ export function attentionRow(position: number, embeddings: readonly Vector2[] = 
     context, residual, logits, outputProbabilities };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const row = attentionRow(1);
   console.log(JSON.stringify({ tokens: ATTENTION_TOKENS, embeddings: EMBEDDINGS,
     ...row, maskedScores: row.maskedScores.map((score) => Number.isFinite(score) ? score : '−∞') }, null, 2));

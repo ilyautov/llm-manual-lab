@@ -57,8 +57,11 @@ GLOSSARY_PARAGRAPH_TARGETS = {
     189: ('idempotency', 'sql'),
 }
 PAGE_HEADER_MAP = {}
-FONTROOT = Path(os.environ.get('LLM_MANUAL_FONTROOT',
-    str(Path.home() / '.cache/codex-runtimes/codex-primary-runtime/dependencies/native/libreoffice-headless/libreoffice/LibreOfficeDev.app/Contents/Resources/fonts/truetype')))
+# Шрифты лежат в репозитории (manual/fonts), поэтому сборка воспроизводима из чистого клона.
+# Переменная LLM_MANUAL_FONTROOT остаётся для нестандартных окружений.
+_REPO_FONTS = Path(__file__).resolve().parent / 'fonts'
+_FONT_ENV = os.environ.get('LLM_MANUAL_FONTROOT')
+FONTROOT = Path(_FONT_ENV) if _FONT_ENV else _REPO_FONTS
 
 pdfmetrics.registerFont(TTFont('Noto', str(FONTROOT / 'NotoSans-Regular.ttf')))
 pdfmetrics.registerFont(TTFont('NotoBold', str(FONTROOT / 'NotoSans-Bold.ttf')))
