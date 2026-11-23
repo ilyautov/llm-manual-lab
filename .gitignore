@@ -7,3 +7,5 @@ manual/out/
 __pycache__/
 work/
 .impeccable/
+dist/
+manual/out/
