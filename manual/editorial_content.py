@@ -490,7 +490,14 @@ NEW_REFERENCES = [
     '[47] Sainz et al. NLP Evaluation in trouble: On the Need to Measure LLM '
     'Data Contamination for each Benchmark. 2023. '
     'https://arxiv.org/abs/2310.18018',
-]
+
+    '[48] Lin J., Tang J., Tang H., Yang S., Chen W.-M., Wang W.-C., '
+    'Xiao G., Dang X., Gan C., Han S. AWQ: Activation-aware Weight '
+    'Quantization for LLM Compression and Acceleration. MLSys, 2024. '
+    'arXiv:2306.00978. https://arxiv.org/abs/2306.00978',
+    '[49] Snell C., Lee J., Xu K., Kumar A. Scaling LLM Test-Time Compute '
+    'Optimally can be More Effective than Scaling Model Parameters. 2024. '
+    'arXiv:2408.03314. https://arxiv.org/abs/2408.03314',]
 
 REFERENCE_TITLE_FIXES = {
     260: ('LLaMA Open and Efficient', 'LLaMA: Open and Efficient'),
